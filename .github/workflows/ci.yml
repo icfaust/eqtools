@@ -26,7 +26,7 @@ jobs:
 
     name: CI-${{ matrix.os.name }}
     runs-on: ${{ matrix.os.label }}
-      steps:
+    steps:
       - name: Checkout EqTools
         uses: actions/checkout@v4
       - name: Install Python
