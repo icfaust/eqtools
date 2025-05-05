@@ -29,7 +29,7 @@ except:
     except:
         import pickle as pkl
     dir_path = os.path.dirname(os.path.realpath(__file__))    
-    with open(os.join([dir_path, 'test_data.pkl']), 'rb') as f:
+    with open(os.sep.join([dir_path, 'test_data.pkl']), 'rb') as f:
         shot, e, et = pkl.load(f, encoding='bytes')
         if not eqtools.core._has_trispline:
             et = e
