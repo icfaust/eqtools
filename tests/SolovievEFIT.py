@@ -25,7 +25,6 @@ Classes:
 """
 
 import numpy
-import scipy
 from collections import namedtuple
 from eqtools.core import Equilibrium, ModuleWarning, inPolygon
 
@@ -105,15 +104,15 @@ class CircSolovievEFIT(Equilibrium):
         self._psi0 = numpy.array([self._psi0])
 
         # RZ grid
-        self._rGrid = scipy.linspace(R-1.25*a, R+1.25*a, self._npts)
+        self._rGrid = numpy.linspace(R-1.25*a, R+1.25*a, self._npts)
         self._defaultUnits['_rGrid'] = length_unit
-        self._zGrid = scipy.linspace(-1.25*a, 1.25*a, self._npts)
+        self._zGrid = numpy.linspace(-1.25*a, 1.25*a, self._npts)
         self._defaultUnits['_zGrid'] = length_unit
 
         self._psiRZ = self.rz2psi_analytic(
             self._rGrid, self._zGrid, length_unit=length_unit, make_grid=True
         )
-        self._psiRZ = scipy.reshape(self._psiRZ, (1, npts, npts))
+        self._psiRZ = numpy.reshape(self._psiRZ, (1, npts, npts))
 
     def __str__(self):
         """string formatting for CircSolovievEFIT class.
@@ -186,11 +185,11 @@ class CircSolovievEFIT(Equilibrium):
             check_space=False
         )
 
-        R = scipy.reshape(R, oshape)
-        Z = scipy.reshape(Z, oshape)
+        R = numpy.reshape(R, oshape)
+        Z = numpy.reshape(Z, oshape)
 
-        r = scipy.sqrt((R - self._R)**2 + (Z)**2)
-        theta = scipy.arctan2(Z, (R - self._R))
+        r = numpy.sqrt((R - self._R)**2 + (Z)**2)
+        theta = numpy.arctan2(Z, (R - self._R))
         return (r, theta)
 
     def rz2psi_analytic(self, R, Z, length_unit='m', make_grid=False):
@@ -225,7 +224,7 @@ class CircSolovievEFIT(Equilibrium):
 
         Returns:
             psi: Array or scalar float.  If all of the input arguments are scalar,
-                then a scalar is returned. Otherwise, a scipy Array instance is
+                then a scalar is returned. Otherwise, a numpy Array instance is
                 returned. If R and Z both have the same shape then psi has this
                 shape as well. If the make_grid keyword was True then psi has
                 shape (len(Z), len(R)).
@@ -237,7 +236,7 @@ class CircSolovievEFIT(Equilibrium):
 
         psi = (
             A / 4. * (r**2 - self._a**2) + C / 8. * (r**2 - self._a**2) * r *
-            scipy.cos(theta)
+            numpy.cos(theta)
         )
         return psi
 
@@ -338,7 +337,7 @@ class CircSolovievEFIT(Equilibrium):
 
         Returns:
             psi: Array or scalar float. If all of the input arguments are scalar,
-                then a scalar is returned. Otherwise, a scipy Array instance is
+                then a scalar is returned. Otherwise, a numpy Array instance is
                 returned. If R and Z both have the same shape then psi has this
                 shape as well. If the make_grid keyword was True then psi has
                 shape (len(Z), len(R)).
@@ -409,7 +408,7 @@ class CircSolovievEFIT(Equilibrium):
 
         Returns:
             psinorm: Array or scalar float. If all of the input arguments are
-                scalar, then a scalar is returned. Otherwise, a scipy Array
+                scalar, then a scalar is returned. Otherwise, a numpy Array
                 instance is returned. If R and Z both have the same shape then
                 psinorm has this shape as well. If the make_grid keyword was
                 True then psinorm has shape (len(Z), len(R)).
