@@ -34,6 +34,7 @@ except:
         if not eqtools.core._has_trispline:
             et = e
 
+print(dir(e))
 scalar_R = 0.75
 scalar_Z = 0.1
 scalar_t = e.getTimeBase()[45]
