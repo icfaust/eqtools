@@ -29,6 +29,9 @@ import warnings
 import sys
 if sys.version_info.major >= 3:
     long = int
+# gracefully handle scipy cumtrapz deprecation
+if hasattr(scipy.integrate, "cumulative_trapezoid"):
+    scipy.integrate.cumtrapz = scipy.integrate.cumulative_trapezoid
 
 # Constants to determine how plot labels are formatted:
 B_LABEL = '$B$ [T]'
