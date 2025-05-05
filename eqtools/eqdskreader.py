@@ -25,7 +25,7 @@ Classes:
         equilibrium data.
 """
 
-import scipy
+import numpy
 import glob
 import re
 import csv
@@ -256,8 +256,8 @@ class EqdskReader(Equilibrium):
             zmid = float(line[4])     # midpoint of Z grid
 
             # construct EFIT grid
-            self._rGrid = scipy.linspace(rgrid0, rgrid0 + xdim, nw)
-            self._zGrid = scipy.linspace(zmid - zdim/2.0, zmid + zdim/2.0, nh)
+            self._rGrid = numpy.linspace(rgrid0, rgrid0 + xdim, nw)
+            self._zGrid = numpy.linspace(zmid - zdim/2.0, zmid + zdim/2.0, nh)
             # drefit = (self._rGrid[-1] - self._rGrid[0])/(nw-1)
             # dzefit = (self._zGrid[-1] - self._zGrid[0])/(nh-1)
             self._defaultUnits['_rGrid'] = 'm'
@@ -430,8 +430,8 @@ class EqdskReader(Equilibrium):
                             self._preswp.append(float(val))
                     self._preswp = numpy.array(self._preswp).reshape((1, nw))
                 else:
-                    self._presw = scipy.atleast_2d(numpy.array([0]))
-                    self._preswp = scipy.atleast_2d(numpy.array([0]))
+                    self._presw = numpy.atleast_2d(numpy.array([0]))
+                    self._preswp = numpy.atleast_2d(numpy.array([0]))
 
                 # read ion mass density if present
                 if nmass > 0:
@@ -446,7 +446,7 @@ class EqdskReader(Equilibrium):
                             self._dmion.append(float(val))
                     self._dmion = numpy.array(self._dmion).reshape((1, nw))
                 else:
-                    self._dmion = scipy.atleast_2d(numpy.array([0]))
+                    self._dmion = numpy.atleast_2d(numpy.array([0]))
 
                 # read rhovn
                 nrows = nw/5
@@ -472,13 +472,13 @@ class EqdskReader(Equilibrium):
                             self._workk.append(float(val))
                     self._workk = numpy.array(self._workk).reshape((1, nw))
                 else:
-                    self._workk = scipy.atleast_2d(numpy.array([0]))
+                    self._workk = numpy.atleast_2d(numpy.array([0]))
             except Exception:
-                self._presw = scipy.atleast_2d(numpy.array([0]))
-                self._preswp = scipy.atleast_2d(numpy.array([0]))
-                self._rhovn = scipy.atleast_2d(numpy.array([0]))
-                self._dmion = scipy.atleast_2d(numpy.array([0]))
-                self._workk = scipy.atleast_2d(numpy.array([0]))
+                self._presw = numpy.atleast_2d(numpy.array([0]))
+                self._preswp = numpy.atleast_2d(numpy.array([0]))
+                self._rhovn = numpy.atleast_2d(numpy.array([0]))
+                self._dmion = numpy.atleast_2d(numpy.array([0]))
+                self._workk = numpy.atleast_2d(numpy.array([0]))
 
             # read through to end of file to get footer line
             try:
@@ -915,7 +915,7 @@ class EqdskReader(Equilibrium):
 
         Returns:
             rho (Array-like or scalar float): If all of the input arguments are
-            scalar, then a scalar is returned. Otherwise, a scipy Array
+            scalar, then a scalar is returned. Otherwise, a numpy Array
             instance is returned. If R and Z both have the same shape then
             rho has this shape as well. If the make_grid keyword was True
             then rho has shape (len(Z), len(R)).
@@ -1018,7 +1018,7 @@ class EqdskReader(Equilibrium):
 
         Returns:
             R_mid (Array or scalar float): If all of the input arguments are
-            scalar, then a scalar is returned. Otherwise, a scipy Array
+            scalar, then a scalar is returned. Otherwise, a numpy Array
             instance is returned. If `R` and `Z` both have the same shape
             then `R_mid` has this shape as well. If the make_grid keyword
             was True then `R_mid` has shape (`len(Z)`, `len(R)`).
@@ -1086,7 +1086,7 @@ class EqdskReader(Equilibrium):
 
         Returns:
             R_mid (Array-like or scalar float): If all of the input arguments
-            are scalar, then a scalar is returned. Otherwise, a scipy Array
+            are scalar, then a scalar is returned. Otherwise, a numpy Array
             instance is returned.
 
         Examples:
@@ -1139,7 +1139,7 @@ class EqdskReader(Equilibrium):
 
         Returns:
             phinorm (Array-like or scalar float): If all of the input arguments
-            are scalar, then a scalar is returned. Otherwise, a scipy Array
+            are scalar, then a scalar is returned. Otherwise, a numpy Array
             instance is returned.
 
         Examples:
@@ -1182,7 +1182,7 @@ class EqdskReader(Equilibrium):
             currentSign (Int): 1 for positive current, -1 for reversed.
         """
         if self._currentSign is None:
-            self._currentSign = 1 if scipy.mean(self.getIpCalc()) > 1e5 else -1
+            self._currentSign = 1 if numpy.mean(self.getIpCalc()) > 1e5 else -1
         return self._currentSign
 
     def getFluxGrid(self):
@@ -1306,8 +1306,8 @@ class EqdskReader(Equilibrium):
             v = path.vertices
             RLCFS.extend(v[:, 0])
             ZLCFS.extend(v[:, 1])
-            RLCFS.append(scipy.nan)
-            ZLCFS.append(scipy.nan)
+            RLCFS.append(numpy.nan)
+            ZLCFS.append(numpy.nan)
         RLCFS = numpy.array(RLCFS)
         ZLCFS = numpy.array(ZLCFS)
 

@@ -22,7 +22,6 @@ contains an enhanced bivariate spline which generates bounds errors.
 """
 
 import numpy
-import scipy
 import scipy.interpolate
 try:
     from . import _tricub
@@ -106,14 +105,14 @@ class Spline():
             _tricub.ismonotonic(self._y) and
             _tricub.ismonotonic(self._z)
         ):
-            self._x = scipy.insert(self._x, 0, 2*self._x[0]-self._x[1])
-            self._x = scipy.append(self._x, 2*self._x[-1]-self._x[-2])
-            self._y = scipy.insert(self._y, 0, 2*self._y[0]-self._y[1])
-            self._y = scipy.append(self._y, 2*self._y[-1]-self._y[-2])
-            self._z = scipy.insert(self._z, 0, 2*self._z[0]-self._z[1])
-            self._z = scipy.append(self._z, 2*self._z[-1]-self._z[-2])
+            self._x = numpy.insert(self._x, 0, 2*self._x[0]-self._x[1])
+            self._x = numpy.append(self._x, 2*self._x[-1]-self._x[-2])
+            self._y = numpy.insert(self._y, 0, 2*self._y[0]-self._y[1])
+            self._y = numpy.append(self._y, 2*self._y[-1]-self._y[-2])
+            self._z = numpy.insert(self._z, 0, 2*self._z[0]-self._z[1])
+            self._z = numpy.append(self._z, 2*self._z[-1]-self._z[-2])
 
-        self._f = scipy.zeros(numpy.array(f.shape)+(2, 2, 2))
+        self._f = numpy.zeros(numpy.array(f.shape)+(2, 2, 2))
         self._f[1:-1, 1:-1, 1:-1] = numpy.array(f)  # place f in center, so that it is padded by unfilled values on all sides
 
         if boundary == 'clamped':
@@ -264,13 +263,13 @@ class Spline():
                 "A value in z is above the interpolation range."
             )
 
-        out_of_bounds = scipy.logical_not(
-            scipy.logical_or(
-                scipy.logical_or(
-                    scipy.logical_or(below_bounds_x, above_bounds_x),
-                    scipy.logical_or(below_bounds_y, above_bounds_y)
+        out_of_bounds = numpy.logical_not(
+            numpy.logical_or(
+                numpy.logical_or(
+                    numpy.logical_or(below_bounds_x, above_bounds_x),
+                    numpy.logical_or(below_bounds_y, above_bounds_y)
                 ),
-                scipy.logical_or(below_bounds_z, above_bounds_z)
+                numpy.logical_or(below_bounds_z, above_bounds_z)
             )
         )
         return out_of_bounds
@@ -294,11 +293,11 @@ class Spline():
                 of the grid
 
         """
-        x = scipy.atleast_1d(xi)
-        y = scipy.atleast_1d(yi)
-        z = scipy.atleast_1d(zi)  # This will not modify x1,y1,z1.
+        x = numpy.atleast_1d(xi)
+        y = numpy.atleast_1d(yi)
+        z = numpy.atleast_1d(zi)  # This will not modify x1,y1,z1.
 
-        val = self.fill_value*scipy.ones(x.shape)
+        val = self.fill_value*numpy.ones(x.shape)
         idx = self._check_bounds(x, y, z)
 
         if dx == 0:
@@ -415,10 +414,10 @@ class RectBivariateSpline(scipy.interpolate.RectBivariateSpline):
                 "A value in y is above the interpolation range."
             )
 
-        out_of_bounds = scipy.logical_not(
-            scipy.logical_or(
-                scipy.logical_or(below_bounds_x, above_bounds_x),
-                scipy.logical_or(below_bounds_y, above_bounds_y)
+        out_of_bounds = numpy.logical_not(
+            numpy.logical_or(
+                numpy.logical_or(below_bounds_x, above_bounds_x),
+                numpy.logical_or(below_bounds_y, above_bounds_y)
             )
         )
         return out_of_bounds
@@ -436,9 +435,9 @@ class RectBivariateSpline(scipy.interpolate.RectBivariateSpline):
         """
         idx = self._check_bounds(xi, yi)
         # print(idx)
-        zi = self.fill_value*scipy.ones(xi.shape)
+        zi = self.fill_value*numpy.ones(xi.shape)
         zi[idx] = super(RectBivariateSpline, self).ev(
-            scipy.atleast_1d(xi)[idx], scipy.atleast_1d(yi)[idx]
+            numpy.atleast_1d(xi)[idx], numpy.atleast_1d(yi)[idx]
         )
         return zi
 
@@ -451,13 +450,13 @@ class BivariateInterpolator(object):
     """
     def __init__(self, x, y, z):
         self._ct_interp = scipy.interpolate.CloughTocher2DInterpolator(
-            scipy.hstack((scipy.atleast_2d(x).T, scipy.atleast_2d(y).T)),
+            numpy.hstack((numpy.atleast_2d(x).T, numpy.atleast_2d(y).T)),
             z
         )
 
     def ev(self, xi, yi):
         return self._ct_interp(
-            scipy.hstack((scipy.atleast_2d(xi).T, scipy.atleast_2d(yi).T))
+            numpy.hstack((numpy.atleast_2d(xi).T, numpy.atleast_2d(yi).T))
         )
 
 

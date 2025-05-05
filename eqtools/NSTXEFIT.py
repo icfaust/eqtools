@@ -20,7 +20,7 @@
 working with NSTX EFIT data.
 """
 
-import scipy
+import numpy
 
 from .EFIT import EFITTree
 from .core import PropertyAccessMixin, ModuleWarning
