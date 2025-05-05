@@ -19,9 +19,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [
-          { name: Arm Ubuntu-24.04, label: ubuntu-24.04-arm },
-          { name: X86 Ubuntu-latest, label: ubuntu-latest },
-          { name: X86 Windows-latest, label: windows-latest },          
+          { name: arm Ubuntu-24.04, label: ubuntu-24.04-arm },
+          { name: x86 Ubuntu-latest, label: ubuntu-latest },
+          { name: x86 Windows-latest, label: windows-latest },          
         ]
 
     name: CI-${{ matrix.os.name }}
