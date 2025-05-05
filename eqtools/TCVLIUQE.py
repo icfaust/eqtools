@@ -20,6 +20,7 @@
 working with TCV LIUQE Equilibrium.
 """
 
+import numpy
 import scipy
 from collections import namedtuple
 from .EFIT import EFITTree
@@ -198,7 +199,7 @@ class TCVLIUQETree(EFITTree):
         if self._psiRZ is None:
             try:
                 psinode = self._MDSTree.getNode(self._root+'::psi')
-                self._psiRZ = psinode.data() / (2.*scipy.pi)
+                self._psiRZ = psinode.data() / (2.*numpy.pi)
                 self._rGrid = psinode.dim_of(0).data()
                 self._zGrid = psinode.dim_of(1).data()
                 self._defaultUnits['_psiRZ'] = str(psinode.units)
@@ -260,7 +261,7 @@ class TCVLIUQETree(EFITTree):
         if self._psiAxis is None:
             try:
                 psiAxisNode = self._MDSTree.getNode(self._root+'::psi_axis')
-                self._psiAxis = psiAxisNode.data() / (2.*scipy.pi)
+                self._psiAxis = psiAxisNode.data() / (2.*numpy.pi)
                 self._defaultUnits['_psiAxis'] = str(psiAxisNode.units)
             except Exception:
                 raise ValueError('data retrieval failed.')
@@ -483,7 +484,7 @@ class TCVLIUQETree(EFITTree):
                 rad = scipy.vstack(rad)
                 self._fluxPres = scipy.reshape(
                     self.getFluxAxis(), (self.getFluxAxis().size, 1)
-                ) * scipy.dot(duData, rad)/(2*scipy.pi)
+                ) * scipy.dot(duData, rad)/(2*numpy.pi)
 
                 self._defaultUnits['_fluxPres'] = 'Pa'
             except Exception:

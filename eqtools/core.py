@@ -19,6 +19,7 @@
 """This module provides the core classes for :py:mod:`eqtools`, including the
 base :py:class:`Equilibrium` class.
 """
+import numpy
 import scipy
 import scipy.interpolate
 import scipy.integrate
@@ -7765,7 +7766,7 @@ class Equilibrium(object):
         return [uR * R / uT, uZ * R / uT]
 
     def rz2FieldLineTrace(self, R0, Z0, t, phi0=0.0, field='B', num_rev=1.0,
-                          rev_method='toroidal', dphi=2.0 * scipy.pi / 100.0,
+                          rev_method='toroidal', dphi=2.0 * numpy.pi / 100.0,
                           integrator='dopri5'):
         """Trace a field line starting from a given (R, phi, Z) point.
 
@@ -7807,7 +7808,7 @@ class Equilibrium(object):
             q = self.rz2q(R0, Z0, t)
             num_rev = num_rev * q
         nsteps = int(
-            scipy.absolute(scipy.ceil(num_rev * 2.0 * scipy.pi / dphi))
+            scipy.absolute(scipy.ceil(num_rev * 2.0 * numpy.pi / dphi))
         )
 
         if isinstance(integrator, scipy.integrate.ode):

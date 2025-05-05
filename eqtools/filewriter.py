@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with EqTools.  If not, see <http://www.gnu.org/licenses/>.
 
+import numpy
 import scipy
 import scipy.interpolate
 import warnings
@@ -259,7 +260,7 @@ def _findLCFS(rgrid, zgrid, psiRZ, rcent, zcent, psiLCFS, nbbbs=100):
     """ internal function for finding the last closed flux surface
     based off of a Equilibrium instance"""
 
-    ang = scipy.linspace(-scipy.pi, scipy.pi, nbbbs)
+    ang = scipy.linspace(-numpy.pi, numpy.pi, nbbbs)
 
     plt.ioff()
     fig = plt.figure()
@@ -285,7 +286,7 @@ def _findLCFS(rgrid, zgrid, psiRZ, rcent, zcent, psiLCFS, nbbbs=100):
                 sign = scipy.sign(temp[j+1])
                 # only write data if the jump at the last point is well resolved
 
-                if (j+2-idx > 2):  # abs(thetvals[idx]-thetvals[j+1]) < 7*scipy.pi/4) and
+                if (j+2-idx > 2):  # abs(thetvals[idx]-thetvals[j+1]) < 7*numpy.pi/4) and
                     plt.plot(thetvals[idx:j+2], rvals[idx:j+2], 'o')
                     sortang = scipy.argsort(thetvals[idx:j+2])
                     splines += [

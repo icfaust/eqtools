@@ -20,6 +20,7 @@
 working with ASDEX Upgrade experimental data.
 """
 
+import numpy
 import scipy
 from collections import namedtuple
 
@@ -520,7 +521,7 @@ class AUGDDData(Equilibrium):
                 ).T + RLCFStemp * scipy.cos(
                     scipy.tile(
                         (
-                            scipy.linspace(0, 2 * scipy.pi, templen[1] + 1)
+                            scipy.linspace(0, 2 * numpy.pi, templen[1] + 1)
                         ), (templen[0], 1)
                     )
                 )  # construct a 2d grid of angles, take cos, multiply by radius
@@ -559,7 +560,7 @@ class AUGDDData(Equilibrium):
                     zgeo.data, (templen[1] + 1, 1)
                 ).T + ZLCFStemp * scipy.sin(
                     scipy.tile(
-                        (scipy.linspace(0, 2 * scipy.pi, templen[1] + 1)),
+                        (scipy.linspace(0, 2 * numpy.pi, templen[1] + 1)),
                         (templen[0], 1)
                     )
                 )  # construct a 2d grid of angles, take sin, multiply by radius
@@ -1609,7 +1610,7 @@ class AUGDDData(Equilibrium):
         return super(AUGDDData, self).rz2BR(
             R, Z, t, return_t=return_t, make_grid=make_grid, each_t=each_t,
             length_unit=length_unit
-        ) / (2 * scipy.pi)
+        ) / (2 * numpy.pi)
 
     def rz2BZ(
         self, R, Z, t, return_t=False, make_grid=False, each_t=True,
@@ -1720,7 +1721,7 @@ class AUGDDData(Equilibrium):
 
                 BZ_mat = Eq_instance.rz2BZ(R, Z, 0.2, make_grid=True)
         """
-        return super(AUGDDData, self).rz2BZ(R, Z, t, return_t=return_t, make_grid=make_grid, each_t=each_t, length_unit=length_unit)/(2*scipy.pi)
+        return super(AUGDDData, self).rz2BZ(R, Z, t, return_t=return_t, make_grid=make_grid, each_t=each_t, length_unit=length_unit)/(2*numpy.pi)
 
 
 class YGCAUGInterface(object):
