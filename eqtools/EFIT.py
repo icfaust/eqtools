@@ -20,6 +20,7 @@
 with EFIT data.
 """
 
+import numpy
 import scipy
 from collections import namedtuple
 

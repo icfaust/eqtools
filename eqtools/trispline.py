@@ -477,7 +477,7 @@ class UnivariateInterpolator(scipy.interpolate.InterpolatedUnivariateSpline):
         super(UnivariateInterpolator, self).__init__(*args, **kwargs)
 
     def __call__(self, x, *args, **kwargs):
-        x = scipy.asarray(x, dtype=float)
+        x = numpy.asarray(x, dtype=float)
         out = super(UnivariateInterpolator, self).__call__(x, *args, **kwargs)
         if self.min_val is not None:
             out[out < self.min_val] = self.min_val
