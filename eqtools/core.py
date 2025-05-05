@@ -46,7 +46,7 @@ class ModuleWarning(Warning):
 
 try:
     from . import trispline
-    _has_trispline = False
+    _has_trispline = True
 except ImportError:
     warnings.warn("trispline module could not be loaded -- tricubic spline "
                   "interpolation will not be available.",
