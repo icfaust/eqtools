@@ -20,7 +20,6 @@
 base :py:class:`Equilibrium` class.
 """
 import numpy
-import scipy
 import scipy.interpolate
 import scipy.integrate
 import scipy.constants
