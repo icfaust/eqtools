@@ -21,7 +21,7 @@
 contains an enhanced bivariate spline which generates bounds errors.
 """
 
-
+import numpy
 import scipy
 import scipy.interpolate
 try:
@@ -75,7 +75,7 @@ class Spline():
     """
     def __init__(
         self, x, y, z, f, boundary='natural', dx=0, dy=0, dz=0,
-        bounds_error=True, fill_value=scipy.nan
+        bounds_error=True, fill_value=numpy.nan
     ):
         #if dx != 0 or dy != 0 or dz != 0:
         #    raise NotImplementedError(
@@ -368,7 +368,7 @@ class RectBivariateSpline(scipy.interpolate.RectBivariateSpline):
 
     def __init__(
         self, x, y, z, bbox=[None] * 4, kx=3, ky=3, s=0, bounds_error=True,
-        fill_value=scipy.nan
+        fill_value=numpy.nan
     ):
 
         super(RectBivariateSpline, self).__init__(
@@ -484,5 +484,5 @@ class UnivariateInterpolator(scipy.interpolate.InterpolatedUnivariateSpline):
         if self.max_val is not None:
             out[out > self.max_val] = self.max_val
         out[(x < self.get_knots().min()) | (x > self.get_knots().max())] = \
-            scipy.nan
+            numpy.nan
         return out
