@@ -367,8 +367,8 @@ class CModEFITTree(EFITTree):
                 x.append(None)
                 y.append(None)
 
-        x = scipy.array(x)
-        y = scipy.array(y)
+        x = numpy.array(x)
+        y = numpy.array(y)
         return (x, y)
 
     def getRCentr(self, length_unit=1):

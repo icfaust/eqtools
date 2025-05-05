@@ -627,12 +627,12 @@ class AUGDDData(Equilibrium):
                 ZLCFS_frame.extend(v[:, 1])
                 RLCFS_frame.append(scipy.nan)
                 ZLCFS_frame.append(scipy.nan)
-            RLCFS_frame = scipy.array(RLCFS_frame)
-            ZLCFS_frame = scipy.array(ZLCFS_frame)
+            RLCFS_frame = numpy.array(RLCFS_frame)
+            ZLCFS_frame = numpy.array(ZLCFS_frame)
 
             # generate masking array to vessel
             if mask:
-                maskarr = scipy.array([False for i in range(len(RLCFS_frame))])
+                maskarr = numpy.array([False for i in range(len(RLCFS_frame))])
                 for i, x in enumerate(RLCFS_frame):
                     y = ZLCFS_frame[i]
                     maskarr[i] = inPolygon(Rlim, Zlim, x, y)
@@ -1813,7 +1813,7 @@ class YGCAUGInterface(object):
             }
 
     # ONLY CERTAIN YGC FILES EXIST I MEAN CMON ITS NOT THAT MUCH MEMORY
-    _ygc_shotfiles = scipy.array([0, 948, 8650, 9401, 12751, 14051, 14601, 16315, 18204, 19551, 21485, 25891, 30136])
+    _ygc_shotfiles = numpy.array([0, 948, 8650, 9401, 12751, 14051, 14601, 16315, 18204, 19551, 21485, 25891, 30136])
 
     def _getData(self, shot):
         try:
@@ -1901,8 +1901,8 @@ class YGCAUGInterface(object):
                 x.append(None)
                 y.append(None)
 
-        x = scipy.array(x[:-1])
-        y = scipy.array(y[:-1])
+        x = numpy.array(x[:-1])
+        y = numpy.array(y[:-1])
         return (x, y)
 
 

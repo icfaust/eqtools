@@ -100,9 +100,9 @@ class CircSolovievEFIT(Equilibrium):
         self._qstar = (2.*numpy.pi * a**2 * B0) / (4.*numpy.pi*1.e-1 * R * Ip)
 
         # flux definitions
-        self._psiLCFS = scipy.array([0.0])
+        self._psiLCFS = numpy.array([0.0])
         self._psi0 = -0.5 * self._B0 * self._a**2 / self._qstar
-        self._psi0 = scipy.array([self._psi0])
+        self._psi0 = numpy.array([self._psi0])
 
         # RZ grid
         self._rGrid = scipy.linspace(R-1.25*a, R+1.25*a, self._npts)
@@ -536,7 +536,7 @@ class CircSolovievEFIT(Equilibrium):
     #################
 
     def getTimeBase(self):
-        return scipy.array([0.0])
+        return numpy.array([0.0])
 
     def getCurrentSign(self):
         """Returns the sign of the current, for flux mapping.  Note - inverted from intuitive, due to Soloviev formalism.

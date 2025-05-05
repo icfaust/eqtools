@@ -8920,7 +8920,7 @@ class Equilibrium(object):
     ):
         """Input checker/processor.
 
-        Takes R, Z and t. Appropriately packages them into scipy arrays. Checks
+        Takes R, Z and t. Appropriately packages them into numpy.arrays. Checks
         the validity of the R, Z ranges. If there is a single time value but
         multiple R, Z values, creates matching time vector. If there is a single
         R, Z value but multiple t values, creates matching R and Z vectors.
@@ -9141,7 +9141,7 @@ class Equilibrium(object):
         # Gracefully handle single-value versus array inputs, returning in the
         # corresponding type.
         num_good = scipy.sum(good_points)
-        test = scipy.array(R)
+        test = numpy.array(R)
         if len(test.shape) > 0:
             num_pts = test.size
         else:
@@ -9180,7 +9180,7 @@ class Equilibrium(object):
         # corresponding type.
         if not self._monotonic:
             try:
-                return scipy.array(
+                return numpy.array(
                     [(scipy.absolute(a - val)).argmin() for val in v]
                 )
             except TypeError:

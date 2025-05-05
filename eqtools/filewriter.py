@@ -245,7 +245,7 @@ def gfile(
                     nbbbs=nbbbs)
 
     # write boundary
-    lim = scipy.array(obj.getMachineCrossSection()).T
+    lim = numpy.array(obj.getMachineCrossSection()).T
 
     gfiler.write('  '+str(int(len(out)))+'   '+str(int(len(lim)))+'\n')
 

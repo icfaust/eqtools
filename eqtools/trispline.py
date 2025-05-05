@@ -83,17 +83,17 @@ class Spline():
         #        "interpolation if you need to compute magnetic fields!"
         #    )
 
-        self._x = scipy.array(x, dtype=float)
-        self._y = scipy.array(y, dtype=float)
-        self._z = scipy.array(z, dtype=float)
+        self._x = numpy.array(x, dtype=float)
+        self._y = numpy.array(y, dtype=float)
+        self._z = numpy.array(z, dtype=float)
 
-        self._xlim = scipy.array((x.min(), x.max()))
-        self._ylim = scipy.array((y.min(), y.max()))
-        self._zlim = scipy.array((z.min(), z.max()))
+        self._xlim = numpy.array((x.min(), x.max()))
+        self._ylim = numpy.array((y.min(), y.max()))
+        self._zlim = numpy.array((z.min(), z.max()))
 
-        self._dx = scipy.array(dx, dtype=int)
-        self._dy = scipy.array(dy, dtype=int)
-        self._dz = scipy.array(dz, dtype=int)
+        self._dx = numpy.array(dx, dtype=int)
+        self._dy = numpy.array(dy, dtype=int)
+        self._dz = numpy.array(dz, dtype=int)
 
         self.bounds_error = bounds_error
         self.fill_value = fill_value
@@ -113,8 +113,8 @@ class Spline():
             self._z = scipy.insert(self._z, 0, 2*self._z[0]-self._z[1])
             self._z = scipy.append(self._z, 2*self._z[-1]-self._z[-2])
 
-        self._f = scipy.zeros(scipy.array(f.shape)+(2, 2, 2))
-        self._f[1:-1, 1:-1, 1:-1] = scipy.array(f)  # place f in center, so that it is padded by unfilled values on all sides
+        self._f = scipy.zeros(numpy.array(f.shape)+(2, 2, 2))
+        self._f[1:-1, 1:-1, 1:-1] = numpy.array(f)  # place f in center, so that it is padded by unfilled values on all sides
 
         if boundary == 'clamped':
             # faces
@@ -374,8 +374,8 @@ class RectBivariateSpline(scipy.interpolate.RectBivariateSpline):
         super(RectBivariateSpline, self).__init__(
             x, y, z, bbox=bbox, kx=kx, ky=ky, s=s
         )
-        self._xlim = scipy.array((x.min(), x.max()))
-        self._ylim = scipy.array((y.min(), y.max()))
+        self._xlim = numpy.array((x.min(), x.max()))
+        self._ylim = numpy.array((y.min(), y.max()))
         self.bounds_error = bounds_error
         self.fill_value = fill_value
 
