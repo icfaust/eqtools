@@ -24,6 +24,7 @@ import eqtools
 import SolovievEFIT as sefit
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import numpy
 import warnings
 
 warnings.simplefilter("ignore")
