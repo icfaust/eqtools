@@ -2,6 +2,7 @@ import unittest
 import scipy
 
 import eqtools
+import os
 import warnings
 
 try:
@@ -27,7 +28,8 @@ except:
         import cPickle as pkl
     except:
         import pickle as pkl
-    with open('test_data.pkl', 'rb') as f:
+    dir_path = os.path.dirname(os.path.realpath(__file__))    
+    with open(os.join([dir_path, 'test_data.pkl']), 'rb') as f:
         shot, e, et = pkl.load(f, encoding='bytes')
         if not eqtools.core._has_trispline:
             et = e
