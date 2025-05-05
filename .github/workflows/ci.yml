@@ -19,9 +19,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [
-          { name: Arm Ubuntu, label: ubuntu-latest-arm },
-          { name: X86 Ubuntu, label: ubuntu-latest },
-          { name: X86 Windows, label: windows-latest },          
+          { name: Arm Ubuntu-24.04, label: ubuntu-24.04-arm },
+          { name: X86 Ubuntu-latest, label: ubuntu-latest },
+          { name: X86 Windows-latest, label: windows-latest },          
         ]
 
     name: CI-${{ matrix.os.name }}
@@ -31,5 +31,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Install Python
         uses: actions/setup-python@v5
+        with:
+          python-version: 3.10
       - name: Install EqTools
         run: python -m pip install .
