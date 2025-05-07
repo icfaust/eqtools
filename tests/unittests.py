@@ -3,6 +3,7 @@ import numpy
 
 import eqtools
 import os
+import sys
 import warnings
 
 try:
@@ -30,6 +31,10 @@ except:
         import pickle as pkl
     dir_path = os.path.dirname(os.path.realpath(__file__))    
     with open(os.sep.join([dir_path, 'test_data.pkl']), 'rb') as f:
+        if os.name == "nt" and sys.version_info[0] > 2:
+            import copyreg
+            sys.modules["copy_reg"] = copyreg
+
         shot, e, et = pkl.load(f, encoding='latin1')
         if not eqtools.core._has_trispline:
             et = e
