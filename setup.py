@@ -1,7 +1,8 @@
-from numpy.distutils.core import setup, Extension
+import numpy
+from setuptools import Extension, setup
 
 tricub = Extension(
-    'eqtools._tricub', ['eqtools/_tricub.pyf', 'eqtools/_tricub.c']
+    name='eqtools._tricub', sources=['eqtools/_tricubmodule.c'], include_dirs=[numpy.get_include()]
 )
 
 setup(
