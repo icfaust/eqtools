@@ -38,4 +38,6 @@ jobs:
       - name: Run tests
         run: python tests/test.py
       - name: Run unittests
+        # Windows cannot properly load the python2 test data pickle file
+        if: runner.os != 'Windows'
         run: python tests/unittests.py
