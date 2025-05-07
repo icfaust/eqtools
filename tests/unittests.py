@@ -31,11 +31,13 @@ except:
         import pickle as pkl
     dir_path = os.path.dirname(os.path.realpath(__file__))    
     with open(os.sep.join([dir_path, 'test_data.pkl']), 'rb') as f:
-        print(os.name)
+        print(os.name, sys.version_info[0])
+        # loading a linux python2 pickle into windows python3 requires imports
+        # modifications
         if os.name == "nt" and sys.version_info[0] > 2:
             import copyreg
-            sys.modules["copy_reg"] = copyreg
-
+            sys.modules[r"copy_reg\r"] = copyreg
+        # test_data.pkl is a python2 pickle with numpy arrays, use 'latin1'
         shot, e, et = pkl.load(f, encoding='latin1')
         if not eqtools.core._has_trispline:
             et = e
