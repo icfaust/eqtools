@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with EqTools.  If not, see <http://www.gnu.org/licenses/>.
 
-    Copyright 2013 Ian C. Faust
+    Copyright 2025 Ian C. Faust
 
 ******************************************************************/
 
