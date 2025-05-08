@@ -92,7 +92,7 @@ inline static void parse_input(PyObject* args,
                         int* d2)
 {
     PyObject *x0obj, *x1obj, *x2obj, *fobj, *fx0obj, *fx1obj, *fx2obj;
-    PyObject *dobj0, *dobj1, *dobj2;
+    PyObject *dobj0 = NULL, *dobj1 = NULL, *dobj2 = NULL;
     PyArg_ParseTuple(args, "O!O!O!O!O!O!O!|O!O!O!");
 
 
