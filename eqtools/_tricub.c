@@ -1,6 +1,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "_tricub.h"
 
 /*****************************************************************
  
@@ -162,11 +163,12 @@ inline int clip(int x, int a)
 }
 
 
-int ismonotonic(double val[], int ix)
+long ismonotonic(double val[], int ix)
 {   /* while loop based check of monotonicity,
        so on very large bases that fail, it 
        stops early. Starts at end.  */
-  int counter = ix - 1,output = 1;
+  int counter = ix - 1;
+  long output = 1;
   
   while( counter )
     { counter--;  
@@ -180,11 +182,12 @@ int ismonotonic(double val[], int ix)
 }
 
 
-int isregular(double val[], int ix)
+long isregular(double val[], int ix)
 {   /* while loop based check of monotonicity,
        so on very large bases that fail, it 
        stops early. Starts at end.  */
-  int counter = ix - 2,output = 1;
+  int counter = ix - 2;
+  long output = 1;
   double eps = 1e-6; /* Difference between values within .001%  */
   double temp = val[counter] - val[counter + 1];
   while( counter )

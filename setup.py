@@ -2,7 +2,9 @@ import numpy
 from setuptools import Extension, setup
 
 tricub = Extension(
-    name='eqtools._tricub', sources=['eqtools/_tricubmodule.c'], include_dirs=[numpy.get_include()]
+    name='eqtools._tricub',
+    sources=['eqtools/_tricubmodule.c', 'eqtools/_tricub.c'],
+    include_dirs=[numpy.get_include(), './eqtools'],
 )
 
 setup(

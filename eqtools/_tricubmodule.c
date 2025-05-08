@@ -3,7 +3,7 @@
 #include <numpy/numpyconfig.h>
 #include <numpy/arrayobject.h>
 
-//#include "tricub.h"
+#include "_tricub.h"
 
 /*****************************************************************
  
@@ -65,19 +65,63 @@ static PyObject* python_ev(PyObject* self, PyObject* args)
 }
 
 
-static PyObject* python_ismonotonic(PyObject* self, PyObject* args)
-{    /* If the above function returns -1, an appropriate Python exception will
-     * have been set, and the function simply returns NULL
-     */
-    return NULL;
+static PyArrayObject* array_check(PyObject* arg, int ndim)
+{   /* Check in numpy array, dtype is double, and if the number of dimensions of
+    * the array is correct, then return the numpy C-contiguous array. Otherwise,
+    * raise a specified Python error and return NULL.
+    */
+    PyArrayObject* input;
+
+    if (!((arg) && PyArray_Check(arg))){
+        PyErr_SetString(PyExc_TypeError, "Input is not a numpy.ndarray subtype");
+        return NULL;
+    }
+    input = (PyArrayObject*)arg;
+
+    if (PyArray_NDIM(input) != ndim){
+        PyErr_SetString(PyExc_TypeError, "array has incorrect dimensions");
+        return NULL;
+    }
+
+    if (PyArray_TYPE(input) != NPY_DOUBLE){
+        PyErr_SetString(PyExc_TypeError, "array must be dtype double");
+        return NULL;
+    }
+
+    if(!PyArray_ISCARRAY_RO(input)) input = PyArray_GETCONTIGUOUS(arg);
+
+    return input;
+}
+
+static PyObject* python_ismonotonic(PyObject* self, PyObject* arg)
+{
+    PyArrayObject* input;
+    input = array_check(arg, 1);
+    /* if NULL, python error is raised */
+    if(!(input)) return NULL;
+    
+    int ix;
+    double* data;
+
+    ix = PyArray_DIM(input, 0);
+    data = (double*) PyArray_DATA(input);
+    return PyBool_FromLong(ismonotonic(data, ix));
 }
 
 
-static PyObject* python_isregular(PyObject* self, PyObject* args)
-{    /* If the above function returns -1, an appropriate Python exception will
-     * have been set, and the function simply returns NULL
-     */
-    return NULL;
+static PyObject* python_isregular(PyObject* self, PyObject* arg)
+{
+    PyArrayObject* input;
+    input = array_check(arg, 1);
+    /* if NULL, python error is raised */
+    if(!(input)) return NULL;
+    
+    int ix;
+    double* data;
+
+    ix = PyArray_DIM(input, 0);
+    data = (double*) PyArray_DATA(input);
+    return PyBool_FromLong(isregular(data, ix));
 }
 
 
