@@ -1,12 +1,12 @@
 #include <Python.h>
 
-#include <numpy/numpyconfig.h>
 #include <numpy/arrayobject.h>
+#include <numpy/numpyconfig.h>
 
 #include "_tricub.h"
 
 /*****************************************************************
- 
+
     This file is part of the eqtools package.
 
     EqTools is free software: you can redistribute it and/or modify
@@ -26,172 +26,253 @@
 
 ******************************************************************/
 
-static PyArrayObject* array_check(PyObject* arg, int ndim)
-{   /* Check in numpy array, dtype is double, and if the number of dimensions of
-    * the array is correct, then return the numpy C-contiguous array. Otherwise,
-    * raise a specified Python error and return NULL.
-    */
-    PyArrayObject* input;
+#define LENGTH_ASSERT(a, i)                                                    \
+  if (check_1d_array(a, i))                                                    \
+    return 1;
 
-    if (!((arg) && PyArray_Check(arg))){
-        PyErr_SetString(PyExc_TypeError, "Input is not a numpy.ndarray subtype");
-        return NULL;
-    }
+struct input {
+  double *x0;
+  double *x1;
+  double *x2;
+  double *f;
+  double *fx0;
+  double *fx1;
+  double *fx2;
+  int ix0;
+  int ix1;
+  int ix2;
+  int ix;
+  int d0;
+  int d1;
+  int d2;
+};
 
-    input = (PyArrayObject*)arg;
+static int
+to_array(PyObject *obj,
+         void *output) { /* Check in numpy array, dtype is double, and if the
+                          * number of dimensions of the array is correct, then
+                          * return the numpy C-contiguous array. Otherwise,
+                          * raise a specified Python error and return NULL.
+                          */
+  PyArrayObject *array = NULL;
+  output = NULL;
 
-    if (PyArray_NDIM(input) != ndim){
-        PyErr_SetString(PyExc_TypeError, "array has incorrect dimensions");
-        return NULL;
-    }
+  if (!((obj) && PyArray_Check(obj))) {
+    PyErr_SetString(PyExc_TypeError, "Input is not a numpy.ndarray subtype");
+    return 1;
+  }
 
-    if (PyArray_TYPE(input) != NPY_DOUBLE){
-        PyErr_SetString(PyExc_TypeError, "array must be dtype double");
-        return NULL;
-    }
+  array = (PyArrayObject *)obj;
 
-    if(!PyArray_ISCARRAY_RO(input)) input = PyArray_GETCONTIGUOUS(arg);
+  if (PyArray_TYPE(array) != NPY_DOUBLE) {
+    PyErr_SetString(PyExc_TypeError, "array must be dtype double");
+    return 1;
+  }
 
-    return input;
+  if (!PyArray_ISCARRAY_RO(array))
+    array = PyArray_GETCONTIGUOUS(obj);
+
+  output = (void *)&array;
+  return 0;
 }
 
-static PyArrayObject* scalar_check(PyObject* arg){
-    PyArrayObject* input;
-
-
-    if (!((arg) && PyArray_CheckScalar(arg))){
-        PyErr_SetString(PyExc_TypeError, "Input is not a numpy scalar");
-        return NULL;
-    }
-
-    input = (PyArrayObject*)arg;
-
-    if (PyArray_TYPE(input) != NPY_INT){
-        PyErr_SetString(PyExc_TypeError, "scalar must be dtype int");
-        return NULL;
-    }
-
-    return input;
+static inline int check_1d_array(PyArrayObject *array, int length) {
+  if (array && PyArray_DIM(array, 0) != length) {
+    PyErr_SetString(PyExc_TypeError, "1-d array has incorrect length");
+    return 1;
+  }
+  return 0;
 }
 
+static int to_scalar(PyObject *obj, void *output) {
+  // if not supplied do nothing
+  if (!obj)
+    return 0;
 
-inline static void parse_input(PyObject* args,
-                        double** x0,
-                        double** x1,
-                        double** x2,
-                        double** f,
-                        double** fx0,
-                        double** fx1,
-                        double** fx2,
-                        int* ix0,
-                        int* ix1,
-                        int* ix2,
-                        int* ix,
-                        int* d0,
-                        int* d1,
-                        int* d2)
-{
-    PyObject *x0obj, *x1obj, *x2obj, *fobj, *fx0obj, *fx1obj, *fx2obj;
-    PyObject *dobj0 = NULL, *dobj1 = NULL, *dobj2 = NULL;
-    PyArg_ParseTuple(args, "O!O!O!O!O!O!O!|O!O!O!");
+  if (PyArray_CheckScalar(obj)) {
+    PyErr_SetString(PyExc_TypeError, "Input is not a numpy scalar");
+    return 1;
+  }
 
+  if (PyArray_TYPE((PyArrayObject *)obj) != NPY_INT) {
+    PyErr_SetString(PyExc_TypeError, "scalar must be dtype int");
+    return 1;
+  }
 
-
-    if(dobj0) PyArray_ScalarAsCtype(check_scalar(dojb0), (void*)d0);
-    if(dobj1) PyArray_ScalarAsCtype(check_scalar(dobj1), (void*)d1);
-    if(dobj2) PyArray_ScalarAsCtype(check_scalar(dobj2), (void*)d2);
-
+  PyArray_ScalarAsCtype(obj, output);
+  return 0;
 }
 
+inline static int parse_input(PyObject *args, struct input *data) {
+  PyArrayObject *x0obj, *x1obj, *x2obj, *fobj, *fx0obj, *fx1obj, *fx2obj;
+  if (PyArg_ParseTuple(args, "O&O&O&O&O&O&O&|O&O&O&", to_array, &x0obj,
+                       to_array, &x1obj, to_array, &x2obj, to_array, &fobj,
+                       to_array, &fx0obj, to_array, &fx1obj, to_array, &fx2obj,
+                       to_scalar, &data->d0, to_scalar, &data->d1, to_scalar,
+                       &data->d2))
+    return 1;
 
-static PyObject* python_reg_ev(PyObject* self, PyObject* args)
-{    /* If the above function returns -1, an appropriate Python exception will
-     * have been set, and the function simply returns NULL
-     */
-    int ix0, ix1, ix2, ix, d0, d1, d2; // d0, d1, d2 are unused
-    double *x0, *x1, *x2, *f, *fx0, *fx1, *fx2;
-    parse_input(args, &x0, &x1, &x2, &f, &fx0, &fx1, &fx2, &ix0, &ix1, &ix2, &ix, &d0, &d1, &d2);
-    reg_ev(val, x0, x1, x2, f, fx0, fx1, fx2, ix0, ix1, ix2, ix);
+  // get dimension for testing
+  data->ix = PyArray_DIM(x0obj, 0);
+  LENGTH_ASSERT(x1obj, data->ix);
+  LENGTH_ASSERT(x2obj, data->ix);
 
+  // assert f is 3 dimensions
+  if (!fobj || PyArray_NDIM(fobj) != 3) {
+    PyErr_SetString(PyExc_TypeError, "f array is not 3 dimensional");
+    return 1;
+  }
+  data->ix0 = PyArray_DIM(fobj, 2);
+  data->ix1 = PyArray_DIM(fobj, 1);
+  data->ix2 = PyArray_DIM(fobj, 0);
+  LENGTH_ASSERT(fx0obj, data->ix0);
+  LENGTH_ASSERT(fx1obj, data->ix1);
+  LENGTH_ASSERT(fx2obj, data->ix2);
+
+  // set values for C code
+  data->x0 = (double *)PyArray_DATA(x0obj);
+  data->x1 = (double *)PyArray_DATA(x1obj);
+  data->x2 = (double *)PyArray_DATA(x2obj);
+  data->f = (double *)PyArray_DATA(fobj);
+  data->fx0 = (double *)PyArray_DATA(fx0obj);
+  data->fx1 = (double *)PyArray_DATA(fx1obj);
+  data->fx2 = (double *)PyArray_DATA(fx2obj);
+
+  return 0;
 }
 
+static PyObject *python_reg_ev(
+    PyObject *self,
+    PyObject *args) { /* If the above function returns -1, an
+                       * appropriate Python exception will      have been
+                       * set, and the function simply returns NULL
+                       */
+  double *val;
+  struct input s;
+  npy_intp length;
+  PyObject *output;
 
-static PyObject* python_reg_ev_full(PyObject* self, PyObject* args)
-{    /* If the above function returns -1, an appropriate Python exception will
-     * have been set, and the function simply returns NULL
-     */
-    int ix0, ix1, ix2, ix, d0, d1, d2;
-    double *x0, *x1, *x2, *f, *fx0, *fx1, *fx2;
-    parse_input(args, &x0, &x1, &x2, &f, &fx0, &fx1, &fx2, &ix0, &ix1, &ix2, &ix, &d0, &d1, &d2);
-    reg_ev_full(val, x0, x1, x2, f, fx0, fx1, fx2, ix0, ix1, ix2, ix, d0, d1, d2);
+  if (parse_input(args, &s))
+    return NULL;
+  length = (npy_intp)s.ix;
+  output = PyArray_SimpleNew(1, &length, NPY_DOUBLE);
+  val = (double *)PyArray_DATA((PyArrayObject *)output);
+
+  reg_ev(val, s.x0, s.x1, s.x2, s.f, s.fx0, s.fx1, s.fx2, s.ix0, s.ix1, s.ix2,
+         s.ix);
+  return output;
 }
 
+static PyObject *python_reg_ev_full(
+    PyObject *self,
+    PyObject *args) { /* If the above function returns -1, an appropriate Python
+                       * exception will have been set, and the function simply
+                       * returns NULL
+                       */
+  double *val;
+  struct input s;
+  npy_intp length;
+  PyObject *output;
 
-static PyObject* python_nonreg_ev(PyObject* self, PyObject* args)
-{    /* If the above function returns -1, an appropriate Python exception will
-     * have been set, and the function simply returns NULL
-     */
+  if (parse_input(args, &s))
+    return NULL;
+  length = (npy_intp)s.ix;
+  output = PyArray_SimpleNew(1, &length, NPY_DOUBLE);
+  val = (double *)PyArray_DATA((PyArrayObject *)output);
 
-    int ix0, ix1, ix2, ix, d0, d1, d2; // d0, d1, d2 are unused
-    double *x0, *x1, *x2, *f, *fx0, *fx1, *fx2;
-    parse_input(args, &x0, &x1, &x2, &f, &fx0, &fx1, &fx2, &ix0, &ix1, &ix2, &ix, &d0, &d1, &d2);
-    nonreg_ev(val, x0, x1, x2, f, fx0, fx1, fx2, ix0, ix1, ix2, ix);
+  reg_ev_full(val, s.x0, s.x1, s.x2, s.f, s.fx0, s.fx1, s.fx2, s.ix0, s.ix1,
+              s.ix2, s.ix, s.d0, s.d1, s.d2);
+  return output;
 }
 
+static PyObject *python_nonreg_ev(
+    PyObject *self,
+    PyObject *args) { /* If the above function returns -1, an appropriate Python
+                       * exception will have been set, and the function simply
+                       * returns NULL
+                       */
+  double *val;
+  struct input s;
+  npy_intp length;
+  PyObject *output;
 
-static PyObject* python_nonreg_ev_full(PyObject* self, PyObject* args)
-{    /* If the above function returns -1, an appropriate Python exception will
-     * have been set, and the function simply returns NULL
-     */
-    int ix0, ix1, ix2, ix, d0, d1, d2;
-    double *x0, *x1, *x2, *f, *fx0, *fx1, *fx2;
-    parse_input(args, &x0, &x1, &x2, &f, &fx0, &fx1, &fx2, &ix0, &ix1, &ix2, &ix, &d0, &d1, &d2);
-    nonreg_ev_full(val, x0, x1, x2, f, fx0, fx1, fx2, ix0, ix1, ix2, ix, d0, d1, d2);
+  if (parse_input(args, &s))
+    return NULL;
+  length = (npy_intp)s.ix;
+  output = PyArray_SimpleNew(1, &length, NPY_DOUBLE);
+  val = (double *)PyArray_DATA((PyArrayObject *)output);
+
+  nonreg_ev(val, s.x0, s.x1, s.x2, s.f, s.fx0, s.fx1, s.fx2, s.ix0, s.ix1,
+            s.ix2, s.ix);
+  return output;
 }
 
+static PyObject *python_nonreg_ev_full(
+    PyObject *self,
+    PyObject *args) { /* If the above function returns -1, an appropriate Python
+                       * exception will have been set, and the function simply
+                       * returns NULL
+                       */
+  double *val;
+  struct input s;
+  npy_intp length;
+  PyObject *output;
 
-static PyObject* python_ev(PyObject* self, PyObject* args)
-{    /* If the above function returns -1, an appropriate Python exception will
-     * have been set, and the function simply returns NULL
-     */
-    int ix0, ix1, ix2, ix, d0, d1, d2; // d0, d1, d2 are unused
-    double *x0, *x1, *x2, *f, *fx0, *fx1, *fx2;
-    parse_input(args, &x0, &x1, &x2, &f, &fx0, &fx1, &fx2, &ix0, &ix1, &ix2, &ix, &d0, &d1, &d2);
-    ev(val, x0, x1, x2, f, fx0, fx1, fx2, ix0, ix1, ix2, ix)
+  if (parse_input(args, &s))
+    return NULL;
+  length = (npy_intp)s.ix;
+  output = PyArray_SimpleNew(1, &length, NPY_DOUBLE);
+  val = (double *)PyArray_DATA((PyArrayObject *)output);
+
+  nonreg_ev_full(val, s.x0, s.x1, s.x2, s.f, s.fx0, s.fx1, s.fx2, s.ix0, s.ix1,
+                 s.ix2, s.ix, s.d0, s.d1, s.d2);
+  return output;
 }
 
+static PyObject *
+python_ev(PyObject *self,
+          PyObject *args) { /* If the above function returns -1, an appropriate
+                             * Python exception will have been set, and the
+                             * function simply returns NULL
+                             */
+  double *val;
+  struct input s;
+  npy_intp length;
+  PyObject *output;
+  if (parse_input(args, &s))
+    return NULL;
+  length = (npy_intp)s.ix;
+  output = PyArray_SimpleNew(1, &length, NPY_DOUBLE);
+  val = (double *)PyArray_DATA((PyArrayObject *)output);
 
-static PyObject* python_ismonotonic(PyObject* self, PyObject* arg)
-{
-    PyArrayObject* input;
-    input = array_check(arg, 1);
-    /* if NULL, python error is raised */
-    if(!(input)) return NULL;
-    
-    int ix;
-    double* data;
-
-    ix = PyArray_DIM(input, 0);
-    data = (double*) PyArray_DATA(input);
-    return PyBool_FromLong(ismonotonic(data, ix));
+  ev(val, s.x0, s.x1, s.x2, s.f, s.fx0, s.fx1, s.fx2, s.ix0, s.ix1, s.ix2,
+     s.ix);
+  return output;
 }
 
+static PyObject *python_ismonotonic(PyObject *self, PyObject *arg) {
+  PyArrayObject *array;
+  int ix = -1;
+  double *data;
+  if (to_array(arg, &array))
+    return NULL;
 
-static PyObject* python_isregular(PyObject* self, PyObject* arg)
-{
-    PyArrayObject* input;
-    input = array_check(arg, 1);
-    /* if NULL, python error is raised */
-    if(!(input)) return NULL;
-    
-    int ix;
-    double* data;
-
-    ix = PyArray_DIM(input, 0);
-    data = (double*) PyArray_DATA(input);
-    return PyBool_FromLong(isregular(data, ix));
+  ix = PyArray_DIM(array, 0);
+  data = (double *)PyArray_DATA(array);
+  return PyBool_FromLong(ismonotonic(data, ix));
 }
 
+static PyObject *python_isregular(PyObject *self, PyObject *arg) {
+  PyArrayObject *array;
+  int ix;
+  double *data;
+  if (to_array(arg, &array))
+    return NULL;
+
+  ix = PyArray_DIM(array, 0);
+  data = (double *)PyArray_DATA(array);
+  return PyBool_FromLong(isregular(data, ix));
+}
 
 static PyMethodDef TricubMethods[] = {
     {"reg_ev", python_reg_ev, METH_VARARGS, ""},
@@ -201,25 +282,21 @@ static PyMethodDef TricubMethods[] = {
     {"ev", python_ev, METH_VARARGS, ""},
     {"ismonotonic", python_ismonotonic, METH_O, ""},
     {"isregular", python_isregular, METH_O, ""},
-    {NULL, NULL, 0, NULL}  /* Sentinel */
+    {NULL, NULL, 0, NULL} /* Sentinel */
 };
 
-
-static struct PyModuleDef _tricubStruct = {
-    PyModuleDef_HEAD_INIT,
-    "_tricub",
-    "",
-    -1,
-    TricubMethods,
-    NULL,
-    NULL,
-    NULL,
-    NULL
-};
+static struct PyModuleDef _tricubStruct = {PyModuleDef_HEAD_INIT,
+                                           "_tricub",
+                                           "",
+                                           -1,
+                                           TricubMethods,
+                                           NULL,
+                                           NULL,
+                                           NULL,
+                                           NULL};
 
 /* Module initialization */
-PyObject *PyInit__tricub(void)
-{
-    import_array();
-    return PyModule_Create(&_tricubStruct);
+PyObject *PyInit__tricub(void) {
+  import_array();
+  return PyModule_Create(&_tricubStruct);
 }
