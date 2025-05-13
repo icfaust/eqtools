@@ -4,6 +4,7 @@
 #include <numpy/numpyconfig.h>
 
 #include "_tricub.h"
+#include <stdio.h>
 
 /*****************************************************************
 
@@ -49,19 +50,18 @@ struct input {
 
 static int
 to_array(PyObject *obj,
-         void *output) { /* Check in numpy array, dtype is double, and if the
-                          * number of dimensions of the array is correct, then
-                          * return the numpy C-contiguous array. Otherwise,
-                          * raise a specified Python error and return NULL.
-                          */
+         PyArrayObject *
+             *output) { /* Check in numpy array, dtype is double, and if the
+                         * number of dimensions of the array is correct, then
+                         * return the numpy C-contiguous array. Otherwise,
+                         * raise a specified Python error and return NULL.
+                         */
   PyArrayObject *array = NULL;
-  output = NULL;
 
   if (!((obj) && PyArray_Check(obj))) {
     PyErr_SetString(PyExc_TypeError, "Input is not a numpy.ndarray subtype");
     return 1;
   }
-
   array = (PyArrayObject *)obj;
 
   if (PyArray_TYPE(array) != NPY_DOUBLE) {
@@ -72,7 +72,8 @@ to_array(PyObject *obj,
   if (!PyArray_ISCARRAY_RO(array))
     array = PyArray_GETCONTIGUOUS(obj);
 
-  output = (void *)&array;
+  *output = array;
+
   return 0;
 }
 
@@ -254,6 +255,7 @@ static PyObject *python_ismonotonic(PyObject *self, PyObject *arg) {
   PyArrayObject *array;
   int ix = -1;
   double *data;
+
   if (to_array(arg, &array))
     return NULL;
 
