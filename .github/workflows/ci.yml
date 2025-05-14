@@ -36,6 +36,9 @@ jobs:
       - name: Install EqTools
         run: python -m pip install .
       - name: Run tests
+        run: python -c "import eqtools._tricub"
+        working-directory: ..
+      - name: Run tests
         run: python eqtools/tests/test.py
         working-directory: ..
       - name: Run unittests
