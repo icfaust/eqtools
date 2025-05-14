@@ -4,7 +4,6 @@
 #include <numpy/numpyconfig.h>
 
 #include "_tricub.h"
-#include <stdio.h>
 
 /*****************************************************************
 
@@ -29,7 +28,14 @@
 
 #define LENGTH_ASSERT(a, i)                                                    \
   if (check_1d_array(a, i))                                                    \
-    return 1;
+  return 1
+
+#define ARRAY_SHAPE(a, i) PyArray_DIM((PyArrayObject *)a, i)
+#define ARRAY_DATA(a) PyArray_DATA((PyArrayObject *)a)
+
+#define CHECK_ARRAY(a)                                                         \
+  if (to_array(&a))                                                            \
+  return 1
 
 struct input {
   double *x0;
@@ -48,21 +54,19 @@ struct input {
   int d2;
 };
 
-static int
-to_array(PyObject *obj,
-         PyArrayObject *
-             *output) { /* Check in numpy array, dtype is double, and if the
-                         * number of dimensions of the array is correct, then
-                         * return the numpy C-contiguous array. Otherwise,
-                         * raise a specified Python error and return NULL.
-                         */
+static inline int
+to_array(PyObject **obj) { /* Check in numpy array, dtype is double, and if the
+                            * number of dimensions of the array is correct, then
+                            * return the numpy C-contiguous array. Otherwise,
+                            * raise a specified Python error and return NULL.
+                            */
   PyArrayObject *array = NULL;
 
-  if (!((obj) && PyArray_Check(obj))) {
+  if (!((*obj) && PyArray_Check(*obj))) {
     PyErr_SetString(PyExc_TypeError, "Input is not a numpy.ndarray subtype");
     return 1;
   }
-  array = (PyArrayObject *)obj;
+  array = (PyArrayObject *)*obj;
 
   if (PyArray_TYPE(array) != NPY_DOUBLE) {
     PyErr_SetString(PyExc_TypeError, "array must be dtype double");
@@ -70,15 +74,14 @@ to_array(PyObject *obj,
   }
 
   if (!PyArray_ISCARRAY_RO(array))
-    array = PyArray_GETCONTIGUOUS(obj);
-
-  *output = array;
+    array = PyArray_GETCONTIGUOUS(*obj);
+    *obj = (PyObject*) array;
 
   return 0;
 }
 
-static inline int check_1d_array(PyArrayObject *array, int length) {
-  if (array && PyArray_DIM(array, 0) != length) {
+static inline int check_1d_array(PyObject *array, int length) {
+  if (array && ARRAY_SHAPE(array, 0) != length) {
     PyErr_SetString(PyExc_TypeError, "1-d array has incorrect length");
     return 1;
   }
@@ -104,40 +107,55 @@ static int to_scalar(PyObject *obj, void *output) {
   return 0;
 }
 
-inline static int parse_input(PyObject *args, struct input *data) {
-  PyArrayObject *x0obj, *x1obj, *x2obj, *fobj, *fx0obj, *fx1obj, *fx2obj;
-  if (PyArg_ParseTuple(args, "O&O&O&O&O&O&O&|O&O&O&", to_array, &x0obj,
-                       to_array, &x1obj, to_array, &x2obj, to_array, &fobj,
-                       to_array, &fx0obj, to_array, &fx1obj, to_array, &fx2obj,
-                       to_scalar, &data->d0, to_scalar, &data->d1, to_scalar,
-                       &data->d2))
+static inline int parse_input(PyObject *args, struct input *data) {
+  PyObject *x0obj, *x1obj, *x2obj, *fobj, *fx0obj, *fx1obj, *fx2obj;
+  PyObject *d0obj = NULL, *d1obj = NULL, *d2obj = NULL;
+  if (!PyArg_ParseTuple(args, "OOOOOOO|OOO", &x0obj, &x1obj, &x2obj, &fobj,
+                       &fx0obj, &fx1obj, &fx2obj, &d0obj, &d1obj, &d2obj))
     return 1;
 
+  CHECK_ARRAY(x0obj);
+  CHECK_ARRAY(x1obj);
+  CHECK_ARRAY(x2obj);
+  CHECK_ARRAY(fobj);
+  CHECK_ARRAY(fx0obj);
+  CHECK_ARRAY(fx1obj);
+  CHECK_ARRAY(fx2obj);
+
   // get dimension for testing
-  data->ix = PyArray_DIM(x0obj, 0);
+  data->ix = ARRAY_SHAPE(x0obj, 0);
+
   LENGTH_ASSERT(x1obj, data->ix);
   LENGTH_ASSERT(x2obj, data->ix);
 
   // assert f is 3 dimensions
-  if (!fobj || PyArray_NDIM(fobj) != 3) {
+  if (!fobj || PyArray_NDIM((PyArrayObject *)fobj) != 3) {
     PyErr_SetString(PyExc_TypeError, "f array is not 3 dimensional");
     return 1;
   }
-  data->ix0 = PyArray_DIM(fobj, 2);
-  data->ix1 = PyArray_DIM(fobj, 1);
-  data->ix2 = PyArray_DIM(fobj, 0);
+
+  data->ix0 = ARRAY_SHAPE(fobj, 2);
+  data->ix1 = ARRAY_SHAPE(fobj, 1);
+  data->ix2 = ARRAY_SHAPE(fobj, 0);
+
   LENGTH_ASSERT(fx0obj, data->ix0);
   LENGTH_ASSERT(fx1obj, data->ix1);
   LENGTH_ASSERT(fx2obj, data->ix2);
-
   // set values for C code
-  data->x0 = (double *)PyArray_DATA(x0obj);
-  data->x1 = (double *)PyArray_DATA(x1obj);
-  data->x2 = (double *)PyArray_DATA(x2obj);
-  data->f = (double *)PyArray_DATA(fobj);
-  data->fx0 = (double *)PyArray_DATA(fx0obj);
-  data->fx1 = (double *)PyArray_DATA(fx1obj);
-  data->fx2 = (double *)PyArray_DATA(fx2obj);
+  data->x0 = (double *)ARRAY_DATA(x0obj);
+  data->x1 = (double *)ARRAY_DATA(x1obj);
+  data->x2 = (double *)ARRAY_DATA(x2obj);
+  data->f = (double *)ARRAY_DATA(fobj);
+  data->fx0 = (double *)ARRAY_DATA(fx0obj);
+  data->fx1 = (double *)ARRAY_DATA(fx1obj);
+  data->fx2 = (double *)ARRAY_DATA(fx2obj);
+
+  if (d0obj && to_scalar(d0obj, &data->d0))
+    return 1;
+  if (d1obj && to_scalar(d0obj, &data->d1))
+    return 1;
+  if (d2obj && to_scalar(d0obj, &data->d2))
+    return 1;
 
   return 0;
 }
@@ -152,12 +170,11 @@ static PyObject *python_reg_ev(
   struct input s;
   npy_intp length;
   PyObject *output;
-
   if (parse_input(args, &s))
     return NULL;
   length = (npy_intp)s.ix;
   output = PyArray_SimpleNew(1, &length, NPY_DOUBLE);
-  val = (double *)PyArray_DATA((PyArrayObject *)output);
+  val = (double *)ARRAY_DATA(output);
 
   reg_ev(val, s.x0, s.x1, s.x2, s.f, s.fx0, s.fx1, s.fx2, s.ix0, s.ix1, s.ix2,
          s.ix);
@@ -174,12 +191,13 @@ static PyObject *python_reg_ev_full(
   struct input s;
   npy_intp length;
   PyObject *output;
+  return NULL;
 
   if (parse_input(args, &s))
     return NULL;
   length = (npy_intp)s.ix;
   output = PyArray_SimpleNew(1, &length, NPY_DOUBLE);
-  val = (double *)PyArray_DATA((PyArrayObject *)output);
+  val = (double *)ARRAY_DATA(output);
 
   reg_ev_full(val, s.x0, s.x1, s.x2, s.f, s.fx0, s.fx1, s.fx2, s.ix0, s.ix1,
               s.ix2, s.ix, s.d0, s.d1, s.d2);
@@ -196,12 +214,13 @@ static PyObject *python_nonreg_ev(
   struct input s;
   npy_intp length;
   PyObject *output;
+  return NULL;
 
   if (parse_input(args, &s))
     return NULL;
   length = (npy_intp)s.ix;
   output = PyArray_SimpleNew(1, &length, NPY_DOUBLE);
-  val = (double *)PyArray_DATA((PyArrayObject *)output);
+  val = (double *)ARRAY_DATA(output);
 
   nonreg_ev(val, s.x0, s.x1, s.x2, s.f, s.fx0, s.fx1, s.fx2, s.ix0, s.ix1,
             s.ix2, s.ix);
@@ -218,12 +237,13 @@ static PyObject *python_nonreg_ev_full(
   struct input s;
   npy_intp length;
   PyObject *output;
+  return NULL;
 
   if (parse_input(args, &s))
     return NULL;
   length = (npy_intp)s.ix;
   output = PyArray_SimpleNew(1, &length, NPY_DOUBLE);
-  val = (double *)PyArray_DATA((PyArrayObject *)output);
+  val = (double *)ARRAY_DATA(output);
 
   nonreg_ev_full(val, s.x0, s.x1, s.x2, s.f, s.fx0, s.fx1, s.fx2, s.ix0, s.ix1,
                  s.ix2, s.ix, s.d0, s.d1, s.d2);
@@ -240,11 +260,12 @@ python_ev(PyObject *self,
   struct input s;
   npy_intp length;
   PyObject *output;
+  return NULL;
   if (parse_input(args, &s))
     return NULL;
   length = (npy_intp)s.ix;
   output = PyArray_SimpleNew(1, &length, NPY_DOUBLE);
-  val = (double *)PyArray_DATA((PyArrayObject *)output);
+  val = (double *)ARRAY_DATA(output);
 
   ev(val, s.x0, s.x1, s.x2, s.f, s.fx0, s.fx1, s.fx2, s.ix0, s.ix1, s.ix2,
      s.ix);
@@ -252,27 +273,24 @@ python_ev(PyObject *self,
 }
 
 static PyObject *python_ismonotonic(PyObject *self, PyObject *arg) {
-  PyArrayObject *array;
-  int ix = -1;
+  int ix;
   double *data;
 
-  if (to_array(arg, &array))
+  if (to_array(&arg))
     return NULL;
-
-  ix = PyArray_DIM(array, 0);
-  data = (double *)PyArray_DATA(array);
+  ix = ARRAY_SHAPE(arg, 0);
+  data = (double *)ARRAY_DATA(arg);
   return PyBool_FromLong(ismonotonic(data, ix));
 }
 
 static PyObject *python_isregular(PyObject *self, PyObject *arg) {
-  PyArrayObject *array;
   int ix;
   double *data;
-  if (to_array(arg, &array))
+  if (to_array(&arg))
     return NULL;
 
-  ix = PyArray_DIM(array, 0);
-  data = (double *)PyArray_DATA(array);
+  ix = ARRAY_SHAPE(arg, 0);
+  data = (double *)ARRAY_DATA(arg);
   return PyBool_FromLong(isregular(data, ix));
 }
 
