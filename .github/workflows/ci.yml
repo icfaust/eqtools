@@ -31,6 +31,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Install Python
         uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
       - name: Install EqTools
         run: python -m pip install .
       - name: Run tests
