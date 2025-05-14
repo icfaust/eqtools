@@ -37,7 +37,9 @@ jobs:
         run: python -m pip install .
       - name: Run tests
         run: python tests/test.py
+        working-directory: ..
       - name: Run unittests
         # Windows cannot properly load the python2 test data pickle file
         if: runner.os != 'Windows'
         run: python tests/unittests.py
+        working-directory: ..
