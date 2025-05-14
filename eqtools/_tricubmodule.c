@@ -170,6 +170,7 @@ static PyObject *python_reg_ev(
   struct input s;
   npy_intp length;
   PyObject *output;
+
   if (parse_input(args, &s))
     return NULL;
   length = (npy_intp)s.ix;
@@ -191,7 +192,6 @@ static PyObject *python_reg_ev_full(
   struct input s;
   npy_intp length;
   PyObject *output;
-  return NULL;
 
   if (parse_input(args, &s))
     return NULL;
@@ -214,7 +214,6 @@ static PyObject *python_nonreg_ev(
   struct input s;
   npy_intp length;
   PyObject *output;
-  return NULL;
 
   if (parse_input(args, &s))
     return NULL;
@@ -237,7 +236,6 @@ static PyObject *python_nonreg_ev_full(
   struct input s;
   npy_intp length;
   PyObject *output;
-  return NULL;
 
   if (parse_input(args, &s))
     return NULL;
@@ -260,7 +258,7 @@ python_ev(PyObject *self,
   struct input s;
   npy_intp length;
   PyObject *output;
-  return NULL;
+
   if (parse_input(args, &s))
     return NULL;
   length = (npy_intp)s.ix;
