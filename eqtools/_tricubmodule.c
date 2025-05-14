@@ -134,9 +134,9 @@ static inline int parse_input(PyObject *args, struct input *data) {
     return 1;
   }
 
-  data->ix0 = ARRAY_SHAPE(fobj, 2);
+  data->ix0 = ARRAY_SHAPE(fobj, 0);
   data->ix1 = ARRAY_SHAPE(fobj, 1);
-  data->ix2 = ARRAY_SHAPE(fobj, 0);
+  data->ix2 = ARRAY_SHAPE(fobj, 2);
 
   LENGTH_ASSERT(fx0obj, data->ix0);
   LENGTH_ASSERT(fx1obj, data->ix1);
